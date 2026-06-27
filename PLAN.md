@@ -56,10 +56,10 @@ FastAPI and Streamlit run as separate Docker containers. A third Nginx container
 ## 3. Technology Stack
 
 **LLM Models:**
-- Agent 1 (Query Understanding) uses OpenRouter (Nemotron model `nvidia/llama-3.3-nemotron-super-49b-v1.5`)
-- Agent 3 (Graph Builder) uses OpenRouter (Nemotron model `nvidia/llama-3.3-nemotron-super-49b-v1.5`) for highly detailed extraction
-- Agent 6 (Generator) uses a large open-source model via OpenRouter (TBD)
-- All OpenRouter calls use the OpenAI Python SDK pointed at the OpenRouter base URL
+- Agent 1 (Query Understanding) uses Google Gemini via AI Studio (Model `gemma-4-31b-it`)
+- Agent 3 (Graph Builder) uses OpenRouter (Model `nemotron-3-super-120b-a12b:free`) for highly detailed extraction and rate limit avoidance
+- Agent 6 (Generator) uses Google Gemini via AI Studio (Model `gemini-3.1-flash-lite`) to avoid rate limit issues and ensure fast response generation
+- OpenRouter calls use the OpenAI Python SDK pointed at the OpenRouter base URL. Gemini calls use the `google-generativeai` SDK.
 
 **Embeddings:**
 - Pinecone Inference API. Model name is `llama-text-embed-v2`. Output dimension is 1024.
@@ -109,9 +109,8 @@ The root contains docker-compose.yml, .env.example (committed), .gitignore, and 
 The .env file holds all secrets and config. It is never committed to GitHub. The .env.example file with placeholder values is committed.
 
 Variables needed:
-- OPENROUTER_API_KEY and OPENROUTER_BASE_URL for all OpenRouter LLM calls
-- Model ID variables for each OpenRouter model used (Nemotron and the Generator model)
-- GOOGLE_API_KEY (optional, if any Gemini fallback is used)
+- OPENROUTER_API_KEY and OPENROUTER_BASE_URL for OpenRouter LLM calls
+- GOOGLE_API_KEY for Gemini/Gemma models via AI Studio
 - NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD for AuraDB connection
 - PINECONE_API_KEY and PINECONE_INDEX_NAME for Pinecone connection
 - BACKEND_URL for the Streamlit frontend to know where FastAPI is (localhost:8000 locally, EC2 IP on AWS)
@@ -238,13 +237,14 @@ Graceful degradation: if graph_ready is False, skip Neo4j and note "Graph unavai
 ### Step 6 — Generator
 
 **File:** backend/steps/generator.py
-**Model:** Large open-source model via OpenRouter
+**Model:** `gemini-3.1-flash-lite` via `google-generativeai`
 
 This agent takes the original query and the combined retrieval context and generates the final answer.
 
 What it does:
-- Constructs a prompt containing the original query, graph facts formatted as bullet points, and vector chunks formatted with source labels
-- Instructs the model to answer strictly from the provided context, use clear sections for long answers, cite article titles when making specific claims, and explicitly state when the context is insufficient rather than hallucinating
+- Constructs a prompt containing the original query, an enumerated SOURCES list, graph facts formatted as bullet points, and vector chunks formatted with source labels
+- Instructs the model to answer strictly from the provided context, cite exact sources inline using numeric bracket notation (e.g., `[1]`), provide a "References" list at the bottom, and explicitly state when the context is insufficient rather than hallucinating
+- Includes built-in retry logic (retry once after a 2-second wait on failure)
 - Returns the generated answer text, a list of source objects (title and URL), and a record of which retrieval methods were used
 
 The target audience in the prompt is someone with a technical/ML background — do not over-explain basics.
