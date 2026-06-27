@@ -61,6 +61,7 @@ def graph_builder_node(state: GraphState) -> dict[str, Any]:
     client = OpenAI(
         base_url=os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
         api_key=os.getenv("OPENROUTER_API_KEY"),
+        timeout=90.0,
     )
     all_extracted_facts = []
     
@@ -77,16 +78,26 @@ def graph_builder_node(state: GraphState) -> dict[str, Any]:
         prompt = f"Extract the key relationships from this text about '{title}':\n\n{content_to_process}"
         
         call_start = time.time()
-        
+        response = None
+        for attempt in range(2):
+            try:
+                response = client.chat.completions.create(
+                    model="nemotron-3-super-120b-a12b:free",
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.0
+                )
+                break
+            except Exception as e:
+                log_warning(query_id, "Step3_GraphBuilder", f"Attempt {attempt + 1} failed for '{title}': {str(e)}")
+                if attempt == 0:
+                    time.sleep(3)
+                    
         try:
-            response = client.chat.completions.create(
-                model="nemotron-3-super-120b-a12b:free",
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.0
-            )
+            if not response:
+                raise Exception("Max retries reached")
             
             # Safely parse JSON even if wrapped in markdown blocks
             text = response.choices[0].message.content.strip("` \n")

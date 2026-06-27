@@ -90,7 +90,7 @@ if __name__ == "__main__":
     import uuid
     import os
     
-    query = "How does the Transformer model relate to Self-Attention?"
+    query = "What is the difference between supervised and unsupervised learning?"
     query_id = str(uuid.uuid4())
     
     print(f"Running full pipeline for query: '{query}'")

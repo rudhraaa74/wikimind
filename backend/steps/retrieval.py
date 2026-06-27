@@ -35,7 +35,7 @@ def retrieve_from_vector(query_id: str, query_text: str) -> list[dict]:
         log_error(query_id, "Step5_Retrieval", f"Failed to embed search query: {str(e)}")
         return []
         
-    return pinecone_client.search_vectors(query_id, query_embedding, top_k=5)
+    return pinecone_client.search_vectors(query_id, query_embedding, top_k=15)
 
 def retrieval_node(state: GraphState) -> dict[str, Any]:
     """
