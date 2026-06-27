@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import concurrent.futures
 from typing import Any
 from openai import OpenAI
 
@@ -12,6 +13,14 @@ SYSTEM_PROMPT = """
 You are an expert knowledge extraction agent.
 Your task is to read a section of text from Wikipedia and extract as many highly detailed factual relationships as possible to build a comprehensive knowledge graph.
 Extract at least 15 to 30 relationships per section if possible. Capture both high-level concepts and granular, specific details to ensure the resulting LLM response is extremely well-informed.
+
+ENTITY NORMALIZATION RULES:
+- Use the shortest canonical name for every entity. "transformer" not "transformer model"
+- Never create two nodes for the same concept even if it appears under different names
+- Remove all parenthetical clarifications. "attention" not "attention (machine learning)"
+- Lowercase all node names except proper nouns and acronyms like BERT, GPT, LSTM
+- Never use years, numbers or dates as nodes
+- Never create nodes for generic words like "system", "method", "approach"
 
 Output ONLY valid JSON matching this structure exactly:
 {
@@ -55,19 +64,23 @@ def graph_builder_node(state: GraphState) -> dict[str, Any]:
     )
     all_extracted_facts = []
     
-    for article in articles:
+    call_metrics = []
+    
+    def process_article(article):
         title = article["title"]
         content_to_process = article.get("summary", "")
         
         if not content_to_process:
-            continue
+            return []
             
         log_info(query_id, "Step3_GraphBuilder", f"Extracting graph from article: '{title}'")
         prompt = f"Extract the key relationships from this text about '{title}':\n\n{content_to_process}"
         
+        call_start = time.time()
+        
         try:
             response = client.chat.completions.create(
-                model="nvidia/llama-3.3-nemotron-super-49b-v1.5",
+                model="nemotron-3-super-120b-a12b:free",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": prompt}
@@ -78,6 +91,13 @@ def graph_builder_node(state: GraphState) -> dict[str, Any]:
             # Safely parse JSON even if wrapped in markdown blocks
             text = response.choices[0].message.content.strip("` \n")
             if text.startswith("json"): text = text[4:]
+            
+            # Robust JSON extraction
+            start_idx = text.find('{')
+            end_idx = text.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                text = text[start_idx:end_idx+1]
+                
             result_json = json.loads(text.strip())
             
             extracted = result_json.get("relationships", [])
@@ -86,18 +106,41 @@ def graph_builder_node(state: GraphState) -> dict[str, Any]:
             if extracted:
                 neo4j_client.merge_relationships(extracted)
             
+            facts = []
             for rel in extracted:
                 fact_str = f"({rel['source']}) -[{rel['relation']}]-> ({rel['target']})"
-                all_extracted_facts.append(fact_str)
+                facts.append(fact_str)
                 
+            call_dur = time.time() - call_start
+            call_metrics.append({
+                "duration": call_dur,
+                "facts": len(extracted),
+                "prompt_len": len(prompt)
+            })
+            
             log_info(query_id, "Step3_GraphBuilder", f"Extracted {len(extracted)} facts from '{title}'")
+            return facts
             
         except Exception as e:
             log_error(query_id, "Step3_GraphBuilder", f"Failed to extract from '{title}': {str(e)}")
-            continue
+            return []
+
+    # Execute with ThreadPoolExecutor (max 2 concurrent API calls)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(executor.map(process_article, articles))
+        
+    for res in results:
+        all_extracted_facts.extend(res)
 
     duration_ms = int((time.time() - start_time) * 1000)
     
+    print(f"\n[METRICS - Graph Builder]")
+    print(f"- Total time taken: {duration_ms / 1000:.2f}s")
+    print(f"- Articles processed: {len(articles)}")
+    print(f"- Total Nemotron API calls made: {len(call_metrics)}")
+    for i, m in enumerate(call_metrics):
+        print(f"  * Call {i+1}: Duration={m['duration']:.2f}s, Facts extracted={m['facts']}, Text sent length={m['prompt_len']} chars")
+        
     log_info(query_id, "Step3_GraphBuilder", f"Total facts extracted: {len(all_extracted_facts)}", data={"duration_ms": duration_ms})
     
     return {

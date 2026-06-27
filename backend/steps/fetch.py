@@ -102,6 +102,12 @@ def fetch_node(state: GraphState) -> dict[str, Any]:
             }]
         }
         
+    print(f"\n[METRICS - Wikipedia Fetch]")
+    print(f"- Total time taken: {duration_ms / 1000:.2f}s")
+    print(f"- Articles successfully fetched: {len(articles)}")
+    for a in articles:
+        print(f"  * '{a['title']}' summary length: {len(a.get('summary', ''))} chars")
+        
     return {
         "articles": articles,
         "fetch_errors": fetch_errors,

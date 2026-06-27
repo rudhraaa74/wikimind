@@ -101,5 +101,11 @@ if __name__ == "__main__":
     print(result.get("answer"))
     
     print("\n--- TIMING TRACE ---")
-    for step in result.get("trace", []):
+    trace = result.get("trace", [])
+    for step in trace:
         print(f"[{step['step']}] {step.get('duration_ms', 0)}ms: {step.get('detail', '')}")
+        
+    print("\n--- BOTTLENECK SUMMARY (Slowest to Fastest) ---")
+    sorted_steps = sorted(trace, key=lambda x: x.get('duration_ms', 0), reverse=True)
+    for step in sorted_steps:
+        print(f"[{step['step']}] {step.get('duration_ms', 0) / 1000:.2f}s")

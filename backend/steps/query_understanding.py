@@ -66,6 +66,11 @@ def query_understanding_node(state: GraphState) -> dict[str, Any]:
                 "plan": result
             })
             
+            print(f"\n[METRICS - Query Understanding]")
+            print(f"- Total time taken: {duration_ms / 1000:.2f}s")
+            print(f"- Number of Wikipedia queries generated: {len(result['wikipedia_queries'])}")
+            print(f"- Query type detected: {result['query_type']}")
+            
             return {
                 "core_concepts": result["core_concepts"],
                 "wikipedia_queries": result["wikipedia_queries"],
@@ -89,6 +94,11 @@ def query_understanding_node(state: GraphState) -> dict[str, Any]:
         fallback_queries = [query]
         
     duration_ms = int((time.time() - start_time) * 1000)
+    
+    print(f"\n[METRICS - Query Understanding]")
+    print(f"- Total time taken: {duration_ms / 1000:.2f}s")
+    print(f"- Number of Wikipedia queries generated: {len(fallback_queries)}")
+    print(f"- Query type detected: broad")
     
     return {
         "core_concepts": fallback_queries,

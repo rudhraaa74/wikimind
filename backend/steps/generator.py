@@ -91,6 +91,12 @@ def generator_node(state: GraphState) -> dict[str, Any]:
         "answer_length": len(answer)
     })
     
+    print(f"\n[METRICS - Generator]")
+    print(f"- Total time taken: {duration_ms / 1000:.2f}s")
+    print(f"- Total graph facts sent: {len(graph_facts)}")
+    print(f"- Total vector chunks sent: {len(vector_chunks)}")
+    print(f"- Full prompt char length: {len(SYSTEM_PROMPT) + len(prompt)}")
+    
     return {
         "answer": answer,
         "sources": sources_list,

@@ -36,6 +36,7 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
     
     vectors_to_upsert = []
     chunk_count = 0
+    chunk_counts = {}
     
     for article in articles:
         title = article["title"]
@@ -46,6 +47,7 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
             continue
             
         chunks = splitter.split_text(content)
+        chunk_counts[title] = len(chunks)
         log_info(query_id, "Step4_Embedder", f"Split '{title}' into {len(chunks)} chunks")
         
         for idx, chunk_text in enumerate(chunks):
@@ -92,6 +94,18 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
         vector_ready = False
         
     duration_ms = int((time.time() - start_time) * 1000)
+    
+    print(f"\n[METRICS - Vector Embedder]")
+    print(f"- Total time taken: {duration_ms / 1000:.2f}s")
+    for title, count in chunk_counts.items():
+        print(f"  * '{title}': {count} chunks created")
+        
+    avg_len = 0
+    if vectors_to_upsert:
+        avg_len = sum([len(v["metadata"]["text"]) for v in vectors_to_upsert]) / len(vectors_to_upsert)
+        
+    print(f"- Average chunk character length: {avg_len:.0f}")
+    print(f"- Total chunks embedded: {len(vectors_to_upsert)}")
     
     return {
         "chunks_embedded": len(vectors_to_upsert),

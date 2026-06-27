@@ -95,6 +95,12 @@ def retrieval_node(state: GraphState) -> dict[str, Any]:
         "sources": retrieval_sources
     })
     
+    print(f"\n[METRICS - Dual Retrieval]")
+    print(f"- Total time taken: {duration_ms / 1000:.2f}s")
+    print(f"- Graph facts retrieved: {len(graph_facts)}")
+    print(f"- Vector chunks retrieved: {len(vector_chunks)}")
+    print(f"- Retrieval sources used: {', '.join(retrieval_sources)}")
+    
     return {
         "graph_facts": graph_facts,
         "vector_chunks": vector_chunks,
