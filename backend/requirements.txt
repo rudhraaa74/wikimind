@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+google-genai
+python-dotenv
+wikipedia
+langgraph
+langchain-core
+langchain-text-splitters
+neo4j
+pinecone
+openai

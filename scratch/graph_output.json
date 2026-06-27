@@ -1,0 +1,287 @@
+[
+  {
+    "source": "token",
+    "relation": "converted into",
+    "target": "vector via lookup from a word embedding table"
+  },
+  {
+    "source": "multi-head attention mechanism",
+    "relation": "allows",
+    "target": "amplification of key tokens"
+  },
+  {
+    "source": "multi-head attention mechanism",
+    "relation": "allows",
+    "target": "diminishing less important tokens"
+  },
+  {
+    "source": "self-attention",
+    "relation": "is",
+    "target": "permutation-invariant"
+  },
+  {
+    "source": "token order",
+    "relation": "affects",
+    "target": "output due to positional information"
+  },
+  {
+    "source": "encoder-only variant",
+    "relation": "optimized for",
+    "target": "representation learning"
+  },
+  {
+    "source": "decoder-only variant",
+    "relation": "optimized for",
+    "target": "autoregressive generation"
+  },
+  {
+    "source": "encoder-decoder variant",
+    "relation": "optimized for",
+    "target": "conditional sequence-to-sequence tasks"
+  },
+  {
+    "source": "transformer predecessors",
+    "relation": "developed as improvement over",
+    "target": "previous architectures for machine translation"
+  },
+  {
+    "source": "attention (machine learning)",
+    "relation": "represents importance via",
+    "target": "soft weights"
+  },
+  {
+    "source": "attention (machine learning)",
+    "relation": "is a method that determines",
+    "target": "importance of each component in a sequence"
+  },
+  {
+    "source": "attention (machine learning)",
+    "relation": "used in",
+    "target": "natural language processing"
+  },
+  {
+    "source": "soft weights",
+    "relation": "assigned to",
+    "target": "each word in a sentence"
+  },
+  {
+    "source": "soft weights",
+    "relation": "exist in",
+    "target": "forward pass"
+  },
+  {
+    "source": "soft weights",
+    "relation": "change with",
+    "target": "every step of the input"
+  },
+  {
+    "source": "hard weights",
+    "relation": "contrasted with",
+    "target": "soft weights"
+  },
+  {
+    "source": "hard weights",
+    "relation": "computed during",
+    "target": "backwards training pass"
+  },
+  {
+    "source": "attention mechanism",
+    "relation": "implemented in",
+    "target": "serial recurrent neural network (rnn) language translation system"
+  },
+  {
+    "source": "attention mechanism",
+    "relation": "inspired by",
+    "target": "ideas about attention in humans"
+  },
+  {
+    "source": "attention mechanism",
+    "relation": "developed to address",
+    "target": "weaknesses of using information from hidden layers of recurrent neural networks"
+  },
+  {
+    "source": "transformer",
+    "relation": "is a",
+    "target": "more recent design"
+  },
+  {
+    "source": "transformer",
+    "relation": "based on",
+    "target": "multi-head attention mechanism"
+  },
+  {
+    "source": "transformer",
+    "relation": "converts",
+    "target": "text to numerical representations called tokens"
+  },
+  {
+    "source": "transformer",
+    "relation": "contextualizes",
+    "target": "each token within the scope of the context window with other (unmasked) tokens"
+  },
+  {
+    "source": "transformer",
+    "relation": "injects",
+    "target": "positional information via positional encodings"
+  },
+  {
+    "source": "transformer",
+    "relation": "injects",
+    "target": "positional information via learned positional embeddings"
+  },
+  {
+    "source": "transformer",
+    "relation": "has",
+    "target": "no recurrent units"
+  },
+  {
+    "source": "transformer",
+    "relation": "requires",
+    "target": "less training time than recurrent neural architectures (rnns)"
+  },
+  {
+    "source": "transformer",
+    "relation": "requires",
+    "target": "less training time than long short-term memory (lstm)"
+  },
+  {
+    "source": "transformer",
+    "relation": "has variants",
+    "target": "encoder-only"
+  },
+  {
+    "source": "transformer",
+    "relation": "has variants",
+    "target": "decoder-only"
+  },
+  {
+    "source": "transformer",
+    "relation": "has variants",
+    "target": "encoder-decoder"
+  },
+  {
+    "source": "transformer",
+    "relation": "proposed in",
+    "target": "2017 paper 'attention is all you need'"
+  },
+  {
+    "source": "transformer",
+    "relation": "proposed by",
+    "target": "researchers at google"
+  },
+  {
+    "source": "transformer",
+    "relation": "used in",
+    "target": "large-scale natural language processing"
+  },
+  {
+    "source": "transformer",
+    "relation": "used in",
+    "target": "computer vision (vision transformers)"
+  },
+  {
+    "source": "transformer",
+    "relation": "used in",
+    "target": "reinforcement learning"
+  },
+  {
+    "source": "transformer",
+    "relation": "used in",
+    "target": "audio"
+  },
+  {
+    "source": "transformer",
+    "relation": "used in",
+    "target": "multimodal learning"
+  },
+  {
+    "source": "transformer",
+    "relation": "used in",
+    "target": "robotics"
+  },
+  {
+    "source": "transformer",
+    "relation": "used in",
+    "target": "playing chess"
+  },
+  {
+    "source": "transformer",
+    "relation": "led to development of",
+    "target": "generative pre-trained transformers (gpts)"
+  },
+  {
+    "source": "transformer",
+    "relation": "led to development of",
+    "target": "bert (bidirectional encoder representations from transformers)"
+  },
+  {
+    "source": "transformer",
+    "relation": "is a design of",
+    "target": "attention mechanism"
+  },
+  {
+    "source": "transformer",
+    "relation": "relied more heavily on",
+    "target": "parallel attention scheme"
+  },
+  {
+    "source": "transformer",
+    "relation": "removed",
+    "target": "slower sequential rnn"
+  },
+  {
+    "source": "recurrent neural networks",
+    "relation": "favor information from",
+    "target": "words at the end of a sentence"
+  },
+  {
+    "source": "recurrent neural networks",
+    "relation": "attenuate significance of",
+    "target": "information earlier in the sentence"
+  },
+  {
+    "source": "attention",
+    "relation": "encodes",
+    "target": "token embeddings"
+  },
+  {
+    "source": "attention",
+    "relation": "allows token equal access to",
+    "target": "any part of a sentence directly"
+  },
+  {
+    "source": "attention",
+    "relation": "contrasted with accessing through",
+    "target": "previous state"
+  },
+  {
+    "source": "token embeddings",
+    "relation": "across",
+    "target": "fixed-width sequence"
+  },
+  {
+    "source": "fixed-width sequence",
+    "relation": "size ranges from",
+    "target": "tens to millions of tokens"
+  },
+  {
+    "source": "importance in nlp",
+    "relation": "represented by",
+    "target": "soft weights"
+  },
+  {
+    "source": "serial rnn language translation system",
+    "relation": "implements",
+    "target": "attention mechanism"
+  },
+  {
+    "source": "serial rnn language translation system",
+    "relation": "is an",
+    "target": "earlier design"
+  },
+  {
+    "source": "parallel attention scheme",
+    "relation": "is faster than",
+    "target": "sequential rnn"
+  }
+]
