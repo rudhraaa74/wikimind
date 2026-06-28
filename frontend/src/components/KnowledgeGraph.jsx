@@ -1,6 +1,41 @@
 import React, { useMemo } from 'react';
 import { ReactFlow, Controls, Background, MarkerType } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import dagre from 'dagre';
+
+const dagreGraph = new dagre.graphlib.Graph();
+dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+const getLayoutedElements = (nodes, edges, direction = 'LR') => {
+  const isHorizontal = direction === 'LR';
+  dagreGraph.setGraph({ rankdir: direction, ranksep: 100, nodesep: 50 });
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: 150, height: 50 });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  nodes.forEach((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    node.targetPosition = isHorizontal ? 'left' : 'top';
+    node.sourcePosition = isHorizontal ? 'right' : 'bottom';
+
+    // We are shifting the dagre node position (anchor=center center) to the top left
+    // so it matches the React Flow node anchor point (top left).
+    node.position = {
+      x: nodeWithPosition.x - 75,
+      y: nodeWithPosition.y - 25,
+    };
+    return node;
+  });
+
+  return { nodes, edges };
+};
 
 // Heuristic to guess node type based on name for coloring
 const getNodeColor = (name) => {
@@ -17,21 +52,11 @@ const KnowledgeGraph = ({ nodes = [], edges = [] }) => {
   const { initialNodes, initialEdges } = useMemo(() => {
     if (!nodes.length) return { initialNodes: [], initialEdges: [] };
 
-    // Simple circle layout since we don't have dagre installed
-    const radius = Math.max(200, nodes.length * 15);
-    const centerX = 300;
-    const centerY = 250;
-
-    const flowNodes = nodes.map((node, i) => {
-      const angle = (i / nodes.length) * 2 * Math.PI;
+    const flowNodes = nodes.map((node) => {
       const color = getNodeColor(node);
       
       return {
         id: node,
-        position: {
-          x: centerX + radius * Math.cos(angle),
-          y: centerY + radius * Math.sin(angle)
-        },
         data: { label: node },
         style: {
           background: '#0d1117',
@@ -64,7 +89,8 @@ const KnowledgeGraph = ({ nodes = [], edges = [] }) => {
       },
     }));
 
-    return { initialNodes: flowNodes, initialEdges: flowEdges };
+    const layouted = getLayoutedElements(flowNodes, flowEdges, 'LR');
+    return { initialNodes: layouted.nodes, initialEdges: layouted.edges };
   }, [nodes, edges]);
 
   return (

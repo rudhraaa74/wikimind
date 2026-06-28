@@ -26,7 +26,7 @@ const AnswerPanel = ({ answer, sources, retrievalSources }) => {
       </div>
 
       <div className="prose prose-invert prose-headings:text-white prose-p:text-slate-300 prose-strong:text-white prose-li:text-slate-300 max-w-none flex-1">
-        <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{answer}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[[rehypeKatex, { output: 'html' }]]}>{answer}</ReactMarkdown>
       </div>
 
       {sources && sources.length > 0 && (

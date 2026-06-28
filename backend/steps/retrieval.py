@@ -12,10 +12,7 @@ def retrieve_from_graph(query_id: str, core_concepts: list[str]) -> dict:
     """Retrieves facts from Neo4j."""
     raw_facts = []
     
-    # 1. Fetch all general facts (limit 50)
-    general_facts = neo4j_client.fetch_all_facts()
-    raw_facts.extend(general_facts)
-        
+
     # 2. Fetch facts specifically related to core concepts
     concept_facts = neo4j_client.fetch_facts_by_keywords(core_concepts)
     raw_facts.extend(concept_facts)
