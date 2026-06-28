@@ -34,7 +34,7 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
         length_function=lambda x: len(x.split())
     )
     
-    vectors_to_upsert = []
+    vectors_to_upsert_by_namespace = {}
     chunk_count = 0
     chunk_counts = {}
     
@@ -72,8 +72,12 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
                     continue
                     
             # Prepare vector for Pinecone
-            vectors_to_upsert.append({
-                "id": f"{query_id}-{text_hash[:16]}",
+            namespace = title.lower().replace(' ', '_')
+            if namespace not in vectors_to_upsert_by_namespace:
+                vectors_to_upsert_by_namespace[namespace] = []
+                
+            vectors_to_upsert_by_namespace[namespace].append({
+                "id": f"{namespace}-{text_hash[:16]}",
                 "values": embedding,
                 "metadata": {
                     "text": chunk_text,
@@ -85,9 +89,14 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
             
     # Upsert to Pinecone
     try:
-        if vectors_to_upsert:
-            pinecone_client.upsert_vectors(query_id, vectors_to_upsert)
-            log_info(query_id, "Step4_Embedder", f"Successfully upserted {len(vectors_to_upsert)} vectors")
+        total_upserted = 0
+        for namespace, vectors in vectors_to_upsert_by_namespace.items():
+            if vectors:
+                pinecone_client.upsert_vectors(namespace, vectors)
+                total_upserted += len(vectors)
+                
+        if total_upserted > 0:
+            log_info(query_id, "Step4_Embedder", f"Successfully upserted {total_upserted} vectors across namespaces")
         vector_ready = True
     except Exception as e:
         log_error(query_id, "Step4_Embedder", f"Failed to upsert to Pinecone: {str(e)}")
@@ -101,19 +110,20 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
         print(f"  * '{title}': {count} chunks created")
         
     avg_len = 0
-    if vectors_to_upsert:
-        avg_len = sum([len(v["metadata"]["text"]) for v in vectors_to_upsert]) / len(vectors_to_upsert)
+    total_vectors = sum(len(v) for v in vectors_to_upsert_by_namespace.values())
+    if total_vectors > 0:
+        avg_len = sum([sum(len(vec["metadata"]["text"]) for vec in vecs) for vecs in vectors_to_upsert_by_namespace.values()]) / total_vectors
         
     print(f"- Average chunk character length: {avg_len:.0f}")
-    print(f"- Total chunks embedded: {len(vectors_to_upsert)}")
+    print(f"- Total chunks embedded: {total_vectors}")
     
     return {
-        "chunks_embedded": len(vectors_to_upsert),
+        "chunks_embedded": total_vectors,
         "vector_ready": vector_ready,
         "trace": [{
             "step": "Vector Embedder",
             "duration_ms": duration_ms,
-            "detail": f"Embedded {len(vectors_to_upsert)} chunks from {len(articles)} articles."
+            "detail": f"Embedded {total_vectors} chunks from {len(articles)} articles."
         }]
     }
 

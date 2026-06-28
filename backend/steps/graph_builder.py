@@ -10,25 +10,51 @@ from backend.utils.logger import log_info, log_error, log_warning
 from backend.graph.neo4j_client import neo4j_client
 
 SYSTEM_PROMPT = """
-You are an expert knowledge extraction agent.
-Your task is to read a section of text from Wikipedia and extract as many highly detailed factual relationships as possible to build a comprehensive knowledge graph.
+You are an expert knowledge extraction agent specializing in space and astronomy.
+Your task is to read a section of text from Wikipedia and extract as many highly detailed factual relationships as possible to build a comprehensive space and astronomy knowledge graph.
 Extract at least 15 to 30 relationships per section if possible. Capture both high-level concepts and granular, specific details to ensure the resulting LLM response is extremely well-informed.
 
 ENTITY NORMALIZATION RULES:
-- Use the shortest canonical name for every entity. "transformer" not "transformer model"
+- Use the shortest canonical name for every entity. "black hole" not "black hole object"
 - Never create two nodes for the same concept even if it appears under different names
-- Remove all parenthetical clarifications. "attention" not "attention (machine learning)"
-- Lowercase all node names except proper nouns and acronyms like BERT, GPT, LSTM
+- Remove all parenthetical clarifications. "event horizon" not "event horizon (boundary)"
+- Lowercase all node names except proper nouns and acronyms like NASA, ESA, ISRO, SpaceX, JWST, Hubble
 - Never use years, numbers or dates as nodes
-- Never create nodes for generic words like "system", "method", "approach"
+- Never create nodes for generic terms that have no specific astronomical meaning such as "system", "process", "method", "event", or "object"
+- Always use singular forms. "star" not "stars", "black hole" not "black holes", "galaxy" not "galaxies"
+- Never create a more specific version of a node that already exists. If "accretion disk" exists do not create "accretion disk around black hole"
+- Always prefer the shortest unambiguous name. "general relativity" not "theory of general relativity", "gravitational collapse" not "process of gravitational collapse"
+- Never create nodes for vague descriptive words that carry no specific astronomical meaning such as "surroundings", "matter", "temperature", "compression", "researchers", "astronomers", "light", "radiation" unless they refer to a specific named phenomenon like "hawking radiation" or "cosmic microwave background"
+
+EXTRACTION RULES:
+- Relation names must be specific and directional. Use "orbits", "discovered", "launched by", "observes", "emits", "contains", "classified as" rather than vague relations like "related to", "associated with", or "part of"
+- When the same entity appears as both source and target across different relationships that is good — it means the node is well connected in the graph which improves traversal quality
+- Extract relationships between entities even when they are implicitly stated in the text, not just explicitly stated facts
+- Never create a relationship where the source and target are the same node
+- If two entity names refer to the same concept always merge them into one canonical name before creating any relationship
+
+DOMAIN CONTEXT (SPACE AND ASTRONOMY):
+You are building a permanent space and astronomy knowledge graph that will be queried by space enthusiasts and astronomers.
+Prioritize extracting these specific entity types:
+- Celestial bodies (planets, stars, galaxies, nebulae, black holes)
+- Space missions (crewed and uncrewed)
+- Spacecraft and rockets
+- Space agencies (NASA, ESA, ISRO, SpaceX, etc.)
+- Telescopes and observatories (ground-based and space-based)
+- Astronomical phenomena (supernovae, gravitational waves, cosmic microwave background)
+- Named scientists and astronomers only — never generic "researchers" or "astronomers" as nodes
+- Key discoveries referenced by name
+- Scientific instruments referenced by name
+
+The goal is a clean precise graph of interconnected space knowledge where every node is a meaningful named astronomical entity with no duplicates and no generic filler nodes.
 
 Output ONLY valid JSON matching this structure exactly:
 {
   "relationships": [
     {
-      "source": "The source entity (e.g., 'Transformer')",
-      "relation": "The relationship (e.g., 'introduced in')",
-      "target": "The target entity (e.g., '2017')"
+      "source": "James Webb Space Telescope",
+      "relation": "observes",
+      "target": "exoplanet atmospheres"
     }
   ]
 }
@@ -47,17 +73,30 @@ def graph_builder_node(state: GraphState) -> dict[str, Any]:
         log_warning(query_id, "Step3_GraphBuilder", "No articles provided in state. Skipping extraction.")
         return {"trace": [{"step": "Graph Builder", "duration_ms": 0, "detail": "Skipped. No articles."}], "graph_ready": False}
         
+    core_concepts = state.get("core_concepts", [])
+    
+    if core_concepts:
+        concept_existence = neo4j_client.check_concepts_exist(core_concepts)
+        existing_concepts = [c for c, exists in concept_existence.items() if exists]
+        
+        if len(core_concepts) > 0 and (len(existing_concepts) / len(core_concepts)) >= 0.7:
+            log_info(query_id, "Step3_GraphBuilder", f"Reusing existing graph data for concepts {', '.join(existing_concepts)} — skipping graph build")
+            return {"trace": [{"step": "Graph Builder", "duration_ms": 0, "detail": f"Skipped graph build. Concepts {', '.join(existing_concepts)} already exist."}], "graph_ready": True}
+            
+        # Filter articles to only process those we don't already have in the graph
+        article_titles = [a["title"] for a in articles]
+        title_existence = neo4j_client.check_concepts_exist(article_titles)
+        
+        articles = [a for a in articles if not title_existence.get(a["title"], False)]
+        if not articles:
+            log_info(query_id, "Step3_GraphBuilder", "All articles already exist in graph — skipping graph build")
+            return {"trace": [{"step": "Graph Builder", "duration_ms": 0, "detail": "Skipped. All articles already in graph."}], "graph_ready": True}
+            
     log_info(query_id, "Step3_GraphBuilder", f"Starting extraction on {len(articles)} articles")
     start_time = time.time()
     
-    # Clear existing graph for this new query
-    try:
-        neo4j_client.clear_graph()
-    except Exception as e:
-        log_error(query_id, "Step3_GraphBuilder", f"Failed to clear graph: {str(e)}")
-        # If we can't clear, we can't build a clean graph. Degrade gracefully.
-        return {"trace": [{"step": "Graph Builder", "duration_ms": int((time.time() - start_time) * 1000), "detail": "Failed to access Neo4j."}], "graph_ready": False}
     
+
     client = OpenAI(
         base_url=os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
         api_key=os.getenv("OPENROUTER_API_KEY"),

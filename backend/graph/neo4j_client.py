@@ -115,6 +115,43 @@ class Neo4jClient:
             log_error("SYSTEM", "Neo4jClient", f"Failed to fetch facts by keywords: {str(e)}")
             
         return facts
+        
+    def check_concepts_exist(self, concepts: list[str]) -> dict[str, bool]:
+        """
+        Checks which of the given concepts exist as nodes in the graph.
+        Returns a dictionary mapping concept to a boolean indicating existence.
+        """
+        if not self.driver or not concepts: 
+            return {c: False for c in concepts}
+            
+        normalized_concepts = [self._normalize(c) for c in concepts]
+        query = """
+        UNWIND $concepts AS c
+        OPTIONAL MATCH (n:Entity)
+        WHERE n.name CONTAINS c
+        RETURN c AS concept, count(n) > 0 AS exists
+        """
+        
+        result_map = {c: False for c in concepts}
+        
+        try:
+            with self.driver.session() as session:
+                result = session.run(query, concepts=normalized_concepts)
+                for record in result:
+                    # Map normalized concept back if needed, but it's easier to just match them up
+                    # Since we UNWIND the normalized list, the 'concept' column holds the normalized name
+                    norm_c = record['concept']
+                    exists = record['exists']
+                    
+                    # Find original concept
+                    for orig_c in concepts:
+                        if self._normalize(orig_c) == norm_c:
+                            result_map[orig_c] = exists
+                            break
+        except Exception as e:
+            log_error("SYSTEM", "Neo4jClient", f"Failed to check concept existence: {str(e)}")
+            
+        return result_map
 
 # Global singleton instance created on startup
 neo4j_client = Neo4jClient()

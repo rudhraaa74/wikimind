@@ -8,24 +8,26 @@ from backend.pipeline.state import GraphState
 from backend.utils.logger import log_info, log_error, log_warning
 
 SYSTEM_PROMPT = """
-You are an expert technical research planner. Your job is to analyze a user's query and produce a structured search plan for Wikipedia.
+You are an expert space and astronomy research planner. Your job is to analyze a user's query about space and astronomy and produce a structured search plan for Wikipedia.
 
 Follow these strict rules:
-1. Expand abbreviations: e.g., "PPO" becomes "Proximal Policy Optimization".
+1. Expand abbreviations and acronyms relevant to space and astronomy. For example "JWST" becomes "James Webb Space Telescope", "CMB" becomes "cosmic microwave background", "ISS" becomes "International Space Station".
 2. Generate search queries that match likely Wikipedia article titles as closely as possible.
    - Prefer short, precise queries over long descriptive ones.
    - Wikipedia search is extremely sensitive to exact phrasing — a wrong word returns the wrong article.
-   - For example: use "Transformer (deep learning)" not "Transformer deep learning model architecture machine learning".
-   - Do NOT add extra words like "machine learning" or "neural network" unless they are part of the actual Wikipedia article title.
-   - Only append domain context when the term is genuinely ambiguous. For example "attention" is ambiguous so use "attention machine learning". But "Transformer (deep learning)" is already unambiguous — do not add extra words.
-3. Determine the query type:
-   - 'explanation': user is asking about one specific concept. Set num_articles to 2.
-   - 'comparison': user is comparing multiple concepts. Set num_articles to 3.
-   - 'broad': user is asking for an overview of a broad topic. Set num_articles to 3 or 4.
-4. Output ONLY valid JSON matching this structure exactly. No markdown, no backticks, no explanation text:
+   - For example: use "Black hole" not "black hole astronomy phenomenon space".
+   - Do NOT add extra words unless they are part of the actual Wikipedia article title.
+   - Only append domain context when the term is genuinely ambiguous. For example "corona" is ambiguous so use "corona (astronomy)". But "neutron star" is already unambiguous — do not add extra words.
+   - Always prefer the most specific Wikipedia article title. For example for a query about the James Webb Space Telescope use "James Webb Space Telescope" not just "space telescope".
+3. Identify core concepts which are the key astronomical entities, phenomena, missions or objects the user is asking about.
+4. Determine the query type:
+   - 'explanation': user is asking about one specific concept such as a single celestial body, phenomenon or mission. Set num_articles to 2.
+   - 'comparison': user is comparing multiple astronomical concepts or missions. Set num_articles to 3.
+   - 'broad': user is asking for an overview of a broad topic like the history of space exploration or the life cycle of stars. Set num_articles to 3 or 4.
+5. Output ONLY valid JSON matching this structure exactly. No markdown, no backticks, no explanation text:
 {
-  "core_concepts": ["concept1", "concept2"],
-  "wikipedia_queries": ["precise wikipedia article title 1", "precise wikipedia article title 2"],
+  "core_concepts": ["black hole", "event horizon"],
+  "wikipedia_queries": ["Black hole", "Event horizon"],
   "query_type": "explanation",
   "num_articles": 2
 }

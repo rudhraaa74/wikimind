@@ -24,7 +24,7 @@ def retrieve_from_graph(query_id: str, core_concepts: list[str]) -> list[str]:
         
     return list(facts)
 
-def retrieve_from_vector(query_id: str, query_text: str) -> list[dict]:
+def retrieve_from_vector(query_id: str, query_text: str, articles: list[dict]) -> list[dict]:
     """Embeds the query and searches Pinecone."""
     try:
         # We pass the query text and input_type='query' for llama-text-embed-v2
@@ -35,7 +35,19 @@ def retrieve_from_vector(query_id: str, query_text: str) -> list[dict]:
         log_error(query_id, "Step5_Retrieval", f"Failed to embed search query: {str(e)}")
         return []
         
-    return pinecone_client.search_vectors(query_id, query_embedding, top_k=15)
+    all_results = []
+    
+    for article in articles:
+        title = article.get("title")
+        if not title:
+            continue
+        namespace = title.lower().replace(' ', '_')
+        results = pinecone_client.search_vectors(namespace, query_embedding, top_k=15)
+        all_results.extend(results)
+        
+    # Sort all results by score descending and return top 15 overall
+    all_results.sort(key=lambda x: x.get("score", 0), reverse=True)
+    return all_results[:15]
 
 def retrieval_node(state: GraphState) -> dict[str, Any]:
     """
@@ -45,6 +57,7 @@ def retrieval_node(state: GraphState) -> dict[str, Any]:
     query_id = state["query_id"]
     query_text = state["query"]
     core_concepts = state.get("core_concepts", [])
+    articles = state.get("articles", [])
     
     graph_ready = state.get("graph_ready", False)
     vector_ready = state.get("vector_ready", False)
@@ -68,7 +81,7 @@ def retrieval_node(state: GraphState) -> dict[str, Any]:
             retrieval_sources.append("Graph unavailable")
             
         if vector_ready:
-            vector_future = executor.submit(retrieve_from_vector, query_id, query_text)
+            vector_future = executor.submit(retrieve_from_vector, query_id, query_text, articles)
             retrieval_sources.append("Pinecone")
         else:
             retrieval_sources.append("Vector unavailable")

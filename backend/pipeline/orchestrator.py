@@ -90,7 +90,7 @@ if __name__ == "__main__":
     import uuid
     import os
     
-    query = "What is the difference between supervised and unsupervised learning?"
+    query = "How do supermassive black holes form and what is their relationship to quasars?"
     query_id = str(uuid.uuid4())
     
     print(f"Running full pipeline for query: '{query}'")
