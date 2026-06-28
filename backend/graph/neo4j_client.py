@@ -74,8 +74,8 @@ class Neo4jClient:
             log_error("SYSTEM", "Neo4jClient", f"Failed to merge relationships: {str(e)}")
             raise e
 
-    def fetch_all_facts(self) -> list[str]:
-        """Fetches all edges formatted as plain English sentences."""
+    def fetch_all_facts(self) -> list[dict]:
+        """Fetches all edges formatted as dictionaries."""
         if not self.driver: return []
         query = """
         MATCH (a:Entity)-[r:RELATES_TO]->(b:Entity)
@@ -87,14 +87,18 @@ class Neo4jClient:
             with self.driver.session() as session:
                 result = session.run(query)
                 for record in result:
-                    facts.append(f"{record['source']} {record['relation']} {record['target']}")
+                    facts.append({
+                        "source": record['source'],
+                        "relation": record['relation'],
+                        "target": record['target']
+                    })
         except Exception as e:
             log_error("SYSTEM", "Neo4jClient", f"Failed to fetch facts: {str(e)}")
             
         return facts
 
-    def fetch_facts_by_keywords(self, keywords: list[str]) -> list[str]:
-        """Finds nodes whose names contain keywords and returns their relationships."""
+    def fetch_facts_by_keywords(self, keywords: list[str]) -> list[dict]:
+        """Finds nodes whose names contain keywords and returns their relationships as dictionaries."""
         if not self.driver or not keywords: return []
         
         normalized_kws = [self._normalize(k) for k in keywords]
@@ -110,7 +114,11 @@ class Neo4jClient:
             with self.driver.session() as session:
                 result = session.run(query, keywords=normalized_kws)
                 for record in result:
-                    facts.append(f"{record['source']} {record['relation']} {record['target']}")
+                    facts.append({
+                        "source": record['source'],
+                        "relation": record['relation'],
+                        "target": record['target']
+                    })
         except Exception as e:
             log_error("SYSTEM", "Neo4jClient", f"Failed to fetch facts by keywords: {str(e)}")
             

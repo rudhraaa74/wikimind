@@ -1,0 +1,85 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@theme {
+  --color-space-900: #07080f;
+  --color-space-800: #0d1117;
+  --color-space-border: #1e2433;
+  --color-space-accent: #6366f1;
+  --color-space-accent-hover: #4f46e5;
+  --color-space-text: #ffffff;
+  --color-space-muted: #94a3b8;
+  --color-space-success: #22c55e;
+  --color-space-cached: #f59e0b;
+  --color-space-error: #ef4444;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-space-900);
+    color: var(--color-space-text);
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+}
+
+/* Pure CSS Starfield */
+.starfield-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -10;
+  background-color: var(--color-space-900);
+}
+
+.starfield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 160px 120px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2.5px 2.5px at 300px 300px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 350px 200px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 450px 80px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 500px 250px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 600px 350px, rgba(255,255,255,0.9), rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 700px 100px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 800px 400px, rgba(255,255,255,0.7), rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 850px 450px;
+  opacity: 0.8;
+}
+
+.starfield-2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(1px 1px at 150px 300px, rgba(255,255,255,0.6), rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 250px 150px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 500px 50px, rgba(255,255,255,0.5), rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 750px 200px, rgba(255,255,255,0.7), rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 850px 350px, rgba(255,255,255,0.9), rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 900px 500px;
+  opacity: 0.5;
+}
+
+.starfield-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, transparent 0%, var(--color-space-900) 100%);
+  opacity: 0.5;
+}

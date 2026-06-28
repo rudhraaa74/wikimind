@@ -20,6 +20,10 @@ Rules:
 4. When the context contains rich detail on a topic go deep — do not give a surface level answer when the data supports more
 5. If the context does not contain enough information to answer the query fully, state clearly what you do and do not have information about. Do not hallucinate or fill gaps with general knowledge
 6. Keep tone professional, precise and analytical — like a knowledgeable scientist explaining to a curious colleague
+7. You must actively use information from ALL sources provided in the context, not just the most relevant one. If context from multiple articles is provided, each article must appear at least once as a citation in your answer unless it contains zero relevant information.
+8. Before writing your answer, mentally map which source supports which aspect of the topic. Neutron star structure comes from one source, related phenomena like pulsars come from another — cite each claim from whichever source actually contains that information.
+9. Cite sources only when making specific factual claims that a reader might want to verify, not after every sentence. A single citation can cover an entire paragraph if all facts in that paragraph come from the same source. Group related facts together and cite once at the end of the paragraph rather than after each individual sentence. The goal is citations that feel natural and purposeful like a well written scientific article, not a citation after every line like a legal document.
+10. While you must use information from all provided sources, prioritize depth and clarity over forced coverage. If a specific article contains only tangential information or a single minor detail, it is acceptable to omit it if doing so improves the coherence and readability of the answer. The primary goal is to produce a comprehensive, accurate, and natural-sounding explanation that directly addresses the user's query, not to artificially shoehorn every single source into the text.
 """
 
 def generator_node(state: GraphState) -> dict[str, Any]:
@@ -55,14 +59,15 @@ def generator_node(state: GraphState) -> dict[str, Any]:
     
     if vector_chunks:
         for chunk in vector_chunks:
-            title = chunk.get("title", "Unknown Source")
-            text = chunk.get("text", "")
+            meta = chunk.get("metadata", {})
+            title = meta.get("title", "Unknown Source")
+            text = meta.get("text", "")
             context_str += f"Title: {title}\nContent: {text}\n\n"
             
             # Deduplicate sources for the final output
             if title not in sources_set:
                 sources_set.add(title)
-                sources_list.append({"title": title, "url": chunk.get("url", "")})
+                sources_list.append({"title": title, "url": meta.get("url", "")})
     else:
         context_str += "(No text chunks retrieved)\n"
         

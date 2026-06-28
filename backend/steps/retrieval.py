@@ -8,21 +8,36 @@ from backend.utils.logger import log_info, log_error, log_warning
 from backend.graph.neo4j_client import neo4j_client
 from backend.vector.pinecone_client import pinecone_client
 
-def retrieve_from_graph(query_id: str, core_concepts: list[str]) -> list[str]:
+def retrieve_from_graph(query_id: str, core_concepts: list[str]) -> dict:
     """Retrieves facts from Neo4j."""
-    facts = set()
+    raw_facts = []
     
     # 1. Fetch all general facts (limit 50)
     general_facts = neo4j_client.fetch_all_facts()
-    for f in general_facts:
-        facts.add(f)
+    raw_facts.extend(general_facts)
         
     # 2. Fetch facts specifically related to core concepts
     concept_facts = neo4j_client.fetch_facts_by_keywords(core_concepts)
-    for f in concept_facts:
-        facts.add(f)
+    raw_facts.extend(concept_facts)
         
-    return list(facts)
+    # Deduplicate facts
+    unique_facts = {f"{f['source']}|{f['relation']}|{f['target']}": f for f in raw_facts}.values()
+    
+    facts_str = []
+    nodes_set = set()
+    edges_list = []
+    
+    for f in unique_facts:
+        facts_str.append(f"{f['source']} {f['relation']} {f['target']}")
+        nodes_set.add(f['source'])
+        nodes_set.add(f['target'])
+        edges_list.append({"source": f['source'], "target": f['target'], "type": f['relation']})
+        
+    return {
+        "graph_facts": facts_str,
+        "graph_nodes": list(nodes_set),
+        "graph_edges": edges_list
+    }
 
 def retrieve_from_vector(query_id: str, query_text: str, articles: list[dict]) -> list[dict]:
     """Embeds the query and searches Pinecone."""
@@ -66,6 +81,8 @@ def retrieval_node(state: GraphState) -> dict[str, Any]:
     start_time = time.time()
     
     graph_facts = []
+    graph_nodes = []
+    graph_edges = []
     vector_chunks = []
     retrieval_sources = []
     
@@ -89,7 +106,10 @@ def retrieval_node(state: GraphState) -> dict[str, Any]:
         # Collect results
         if graph_future:
             try:
-                graph_facts = graph_future.result()
+                graph_res = graph_future.result()
+                graph_facts = graph_res.get("graph_facts", [])
+                graph_nodes = graph_res.get("graph_nodes", [])
+                graph_edges = graph_res.get("graph_edges", [])
             except Exception as e:
                 log_error(query_id, "Step5_Retrieval", f"Graph retrieval failed: {str(e)}")
                 
@@ -116,6 +136,8 @@ def retrieval_node(state: GraphState) -> dict[str, Any]:
     
     return {
         "graph_facts": graph_facts,
+        "graph_nodes": graph_nodes,
+        "graph_edges": graph_edges,
         "vector_chunks": vector_chunks,
         "retrieval_sources": retrieval_sources,
         "trace": [{

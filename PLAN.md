@@ -38,7 +38,7 @@ The system was originally designed to start fresh for each query, but it now act
 
 ## 2. How the System Works — Big Picture
 
-The user interacts with a Streamlit frontend. When a query is submitted, Streamlit sends it to a FastAPI backend via HTTP. The FastAPI backend runs a LangGraph pipeline made up of 6 pipeline steps. Only one of them (Graph Builder) is genuinely an agent. The pipeline runs the nodes in a specific order, with two of them running in parallel. After the pipeline completes, FastAPI returns a structured response to Streamlit, which displays the answer, an interactive knowledge graph visualization, and an execution timing trace.
+The user interacts with a React frontend. When a query is submitted, the React app sends it to a FastAPI backend via HTTP. The FastAPI backend runs a LangGraph pipeline made up of 6 pipeline steps. Only one of them (Graph Builder) is genuinely an agent. The pipeline runs the nodes in a specific order, with two of them running in parallel. After the pipeline completes, FastAPI returns a structured response to React, which displays the answer, an interactive knowledge graph visualization, and an execution timing trace.
 
 The pipeline steps in order:
 
@@ -49,7 +49,7 @@ The pipeline steps in order:
 - Step 5 - Dual Retrieval: retrieves relevant context from both Neo4j and Pinecone simultaneously
 - Step 6 - Generator: generates the final answer using the retrieved context
 
-FastAPI and Streamlit run as separate Docker containers. A third Nginx container acts as a reverse proxy, routing traffic to the right container. All databases are cloud-hosted — Neo4j AuraDB for the knowledge graph and Pinecone for vector embeddings. No local databases.
+FastAPI and React (via Nginx or a static server) run as separate Docker containers. A third Nginx container acts as a reverse proxy, routing traffic to the right container. All databases are cloud-hosted — Neo4j AuraDB for the knowledge graph and Pinecone for vector embeddings. No local databases.
 
 ---
 
@@ -77,7 +77,7 @@ FastAPI and Streamlit run as separate Docker containers. A third Nginx container
 
 **Backend:** FastAPI with Uvicorn. Pydantic for request and response validation.
 
-**Frontend:** Streamlit. The pyvis library for knowledge graph visualization rendered as an HTML component inside Streamlit.
+**Frontend:** React with Vite. Tailwind CSS for styling. React Flow for knowledge graph visualization. React Markdown for answer rendering. Lucide React for icons. Axios for HTTP calls.
 
 **Infrastructure:** Docker, Docker Compose, Nginx, AWS EC2 t3.micro, GitHub Actions.
 
@@ -89,7 +89,7 @@ The project root is wikimind/. The structure is as follows:
 
 The backend/ folder contains all agent and pipeline code. Inside it: an agents/ subfolder with one file per agent, a graph/ subfolder with the Neo4j client, a vector/ subfolder with the Pinecone client, a pipeline/ subfolder with the LangGraph state schema and graph definition, a utils/ subfolder with the logger and Pydantic models, and main.py as the FastAPI entry point.
 
-The frontend/ folder contains only app.py (the Streamlit UI) and its own requirements.txt and Dockerfile. The frontend must be completely independent — it imports nothing from backend/.
+The frontend/ folder contains the Vite React app. The frontend must be completely independent — it imports nothing from backend/.
 
 The nginx/ folder contains only nginx.conf.
 
@@ -113,7 +113,7 @@ Variables needed:
 - GOOGLE_API_KEY for Gemini/Gemma models via AI Studio
 - NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD for AuraDB connection
 - PINECONE_API_KEY and PINECONE_INDEX_NAME for Pinecone connection
-- BACKEND_URL for the Streamlit frontend to know where FastAPI is (localhost:8000 locally, EC2 IP on AWS)
+- BACKEND_URL for the React frontend to know where FastAPI is (localhost:8000 locally, EC2 IP on AWS)
 - App config variables: MAX_ARTICLES, CHUNK_SIZE, CHUNK_OVERLAP, LOG_FILE_PATH
 
 ---
@@ -256,7 +256,7 @@ If the generation call fails, retry once after a 2-second wait. If the retry als
 ## 7. Data Flow — What Data Exists at Each Stage
 
 **Stage 1 — User submits query:**
-Streamlit sends a POST request to FastAPI with a JSON body containing the query string.
+React sends a POST request to FastAPI with a JSON body containing the query string.
 
 **Stage 2 — After Agent 1:**
 State contains: the list of core concepts, the list of Wikipedia search queries, the query type, and the number of articles to fetch.
@@ -275,7 +275,7 @@ State contains: list of graph fact strings, list of vector chunk objects, and li
 **Stage 6 — After Step 6:**
 State contains: the generated answer string, list of source objects, and list of retrieval methods used.
 
-**Stage 7 — Response to Streamlit:**
+**Stage 7 — Response to React:**
 FastAPI serializes the relevant state fields into a response JSON containing: answer, sources, graph data (nodes and edges for visualization), agent timing trace, total duration in milliseconds, and retrieval methods used.
 
 ---
@@ -314,7 +314,7 @@ GET /health — simple health check. Returns a JSON object with status "ok". Use
 
 Every agent call is wrapped with a timer. Duration in milliseconds is recorded and added to the trace list. The trace list is built by the pipeline orchestrator, not by individual agents.
 
-Enable CORS middleware in FastAPI to allow Streamlit (running on a different port) to make requests. Allow all origins — this is acceptable for a portfolio project.
+Enable CORS middleware in FastAPI to allow the React app (running on a different port like 5173) to make requests. Allow all origins — this is acceptable for a portfolio project.
 
 The FastAPI app imports the LangGraph pipeline and invokes it per request. All agent logic lives in the agents/ files, not in main.py.
 
@@ -322,24 +322,22 @@ The FastAPI app imports the LangGraph pipeline and invokes it per request. All a
 
 ## 10. UI Design
 
-**File:** frontend/app.py
+**File:** frontend/src/App.jsx
 
-The UI has three sections stacked vertically.
+The UI features a dark space aesthetic (`#07080f` background) with a pure CSS-generated starfield.
 
-**Top section — Query input:**
-A wide text input box and a submit button side by side. While processing, show a spinner with a message. Include a clear button to reset the UI.
+**Top section — Hero & Query input:**
+A landing hero section titled "EXPLORE THE UNIVERSE". A wide search bar with an indigo glow and suggested query chips below it. While processing, animated skeleton loaders display cycling status messages.
 
-**Middle section — Answer:**
-Display the generated answer rendered as markdown (so headers and bold text show correctly). Below the answer, show clickable source links and small badges indicating which retrieval methods were used (Neo4j, Pinecone, or both).
+**Results section:**
+Fades in and smoothly scrolls into view after a query. Split into two columns:
+- **Left column (`AnswerPanel.jsx`)**: Displays the generated answer rendered as markdown. Below the answer, shows clickable source links and small badges indicating which retrieval methods were used (Neo4j Graph, Pinecone Vector).
+- **Right column (`KnowledgeGraph.jsx`)**: Displays the interactive knowledge graph using React Flow. Nodes are dynamically color-coded by type (celestial bodies, missions, phenomena).
 
-**Bottom section — Two columns:**
-Left column shows the interactive knowledge graph. Use pyvis to generate a graph visualization where nodes are circles with entity name labels and edges are arrows with relation name labels. The user can drag nodes and zoom. Render it inside Streamlit using st.components.v1.html. If the graph has zero nodes, show a text message instead.
+**Bottom section — Pipeline Trace:**
+An expandable accordion panel (`PipelineTrace.jsx`) showing the agent trace. Each step has a name, duration in milliseconds, and a detail message. Shows total duration and cache/error badges.
 
-Right column shows the agent trace. Each step has a name, duration in milliseconds, and a detail message. Color-code steps — green for success, red for failure. Show total duration at the bottom.
-
-Use st.session_state to track: the last submitted query, the last response received, and whether a request is in progress.
-
-The frontend reads the FastAPI URL from the BACKEND_URL environment variable. This allows the same code to work locally and on AWS without changes.
+The frontend reads the FastAPI URL from the VITE_BACKEND_URL environment variable.
 
 ---
 
@@ -347,13 +345,13 @@ The frontend reads the FastAPI URL from the BACKEND_URL environment variable. Th
 
 **Backend Dockerfile:** Use python:3.11-slim as base. Set working directory to /app. Install dependencies from requirements.txt. Copy all backend code. Create the /app/logs directory. Expose port 8000. Start with uvicorn pointing to main:app on 0.0.0.0 port 8000.
 
-**Frontend Dockerfile:** Use python:3.11-slim as base. Set working directory to /app. Install dependencies from requirements.txt. Copy frontend code. Expose port 8501. Start with streamlit run app.py on 0.0.0.0 port 8501.
+**Frontend Dockerfile:** Use node:18-alpine as base. Set working directory to /app. Copy package.json and install dependencies. Copy frontend code. Expose port 5173. Start with `npm run dev` on 0.0.0.0 port 5173 (for development).
 
-**docker-compose.yml:** Define three services: backend (port 8000, loads .env file, mounts logs volume), frontend (port 8501, receives BACKEND_URL as environment variable pointing to the backend service), nginx (uses official nginx image, mounts nginx.conf, exposes port 80, depends on both backend and frontend).
+**docker-compose.yml:** Define three services: backend (port 8000, loads .env file, mounts logs volume), frontend (port 5173, receives VITE_BACKEND_URL as environment variable pointing to the backend service), nginx (uses official nginx image, mounts nginx.conf, exposes port 80, depends on both backend and frontend).
 
-**nginx.conf:** All requests to /api/ are proxied to the backend container on port 8000. All other requests are proxied to the frontend container on port 8501.
+**nginx.conf:** All requests to /api/ are proxied to the backend container on port 8000. All other requests are proxied to the frontend container on port 5173.
 
-Local development: run docker-compose up --build from the project root. Streamlit is accessible at http://localhost. FastAPI docs are accessible at http://localhost/api/docs.
+Local development: run docker-compose up --build from the project root. React app is accessible at http://localhost. FastAPI docs are accessible at http://localhost/api/docs.
 
 ---
 
@@ -577,11 +575,11 @@ Commit to GitHub.
 
 ---
 
-### Day 7 — Streamlit UI, Polish, and README
+### Day 7 — React UI, Polish, and README
 
-Write frontend/app.py with all three UI sections. Implement the pyvis graph visualization. Implement the agent trace display with color coding. Implement session state management.
+Write the Vite React app with the three main sections (Hero, AnswerPanel/KnowledgeGraph, PipelineTrace). Implement the React Flow graph visualization.
 
-Test the full flow from the Streamlit UI through FastAPI and back. Run at least ten different queries covering different query types. Fix any bugs found.
+Test the full flow from the React UI through FastAPI and back. Run at least ten different queries covering different query types. Fix any bugs found.
 
 Write a comprehensive README.md covering: what the project is, the architecture with a text diagram, why GraphRAG (explain dual retrieval), tech stack table, local setup instructions, environment variables guide, how to run with Docker, screenshots of the UI, link to the live AWS demo, and an architecture decisions section.
 
