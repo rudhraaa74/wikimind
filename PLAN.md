@@ -77,7 +77,7 @@ FastAPI and React (via Nginx or a static server) run as separate Docker containe
 
 **Backend:** FastAPI with Uvicorn. Pydantic for request and response validation.
 
-**Frontend:** React with Vite. Tailwind CSS for styling. React Flow for knowledge graph visualization. React Markdown for answer rendering. Lucide React for icons. Axios for HTTP calls.
+**Frontend:** React with Vite. Tailwind CSS for styling. React Flow and `dagre` for knowledge graph visualization. React Markdown (with `remark-math` and `rehype-katex` configured for `html` output) for answer rendering. Lucide React for icons. Axios for HTTP calls.
 
 **Infrastructure:** Docker, Docker Compose, Nginx, AWS EC2 t3.micro, GitHub Actions.
 
@@ -243,7 +243,7 @@ This agent takes the original query and the combined retrieval context and gener
 
 What it does:
 - Constructs a prompt containing the original query, an enumerated SOURCES list, graph facts formatted as bullet points, and vector chunks formatted with source labels
-- Instructs the model to answer strictly from the provided context, cite exact sources inline using numeric bracket notation (e.g., `[1]`), provide a "References" list at the bottom, and explicitly state when the context is insufficient rather than hallucinating
+- Instructs the model to answer strictly from the provided context, cite exact sources inline using numeric bracket notation (e.g., `[1]`) with a strict rule of only ONE citation at the very end of each paragraph, provide a "References" list at the bottom, format all math equations using LaTeX (KaTeX compatible `$inline$` and `$$block$$`), and explicitly state when the context is insufficient rather than hallucinating
 - Includes built-in retry logic (retry once after a 2-second wait on failure)
 - Returns the generated answer text, a list of source objects (title and URL), and a record of which retrieval methods were used
 
@@ -332,7 +332,7 @@ A landing hero section titled "EXPLORE THE UNIVERSE". A wide search bar with an 
 **Results section:**
 Fades in and smoothly scrolls into view after a query. Split into two columns:
 - **Left column (`AnswerPanel.jsx`)**: Displays the generated answer rendered as markdown. Below the answer, shows clickable source links and small badges indicating which retrieval methods were used (Neo4j Graph, Pinecone Vector).
-- **Right column (`KnowledgeGraph.jsx`)**: Displays the interactive knowledge graph using React Flow. Nodes are dynamically color-coded by type (celestial bodies, missions, phenomena).
+- **Right column (`KnowledgeGraph.jsx`)**: Displays the interactive knowledge graph using React Flow integrated with `dagre` for an automated Directed Acyclic Graph (DAG) layout. Nodes are dynamically color-coded by type (celestial bodies, missions, phenomena).
 
 **Bottom section — Pipeline Trace:**
 An expandable accordion panel (`PipelineTrace.jsx`) showing the agent trace. Each step has a name, duration in milliseconds, and a detail message. Shows total duration and cache/error badges.
