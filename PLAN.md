@@ -32,7 +32,7 @@
 
 WikiMind is a multi-agent AI system. When a user types a question, the system fetches relevant Wikipedia articles, builds a live knowledge graph from the article content, embeds the articles into a vector store, retrieves context from both the knowledge graph and vector store simultaneously, and uses a large language model to generate a structured answer.
 
-The system is not a chatbot with memory across sessions. Each query is completely independent and starts fresh. It is not a RAG system over a static corpus — it fetches live Wikipedia content for every query. It is a portfolio project demonstrating production-grade multi-agent orchestration and GraphRAG architecture.
+The system was originally designed to start fresh for each query, but it now acts as a persistent, append-only knowledge base for space and astronomy. Instead of wiping its memory, the Neo4j graph accumulates a rich interconnected map of space knowledge covering planets, missions, telescopes, phenomena, and discoveries. If the system has already processed relevant concepts, it instantly retrieves them, becoming faster and more knowledgeable with every query. It is a portfolio project demonstrating production-grade multi-agent orchestration and GraphRAG architecture.
 
 ---
 
@@ -132,8 +132,8 @@ Each agent is a Python function that accepts the current LangGraph state dict an
 This agent takes the raw user query and produces a structured search plan. Its job is to make the query concrete enough for Wikipedia searching.
 
 What it does:
-- Expands abbreviations (for example PPO becomes Proximal Policy Optimization)
-- Appends domain context to all search terms to prevent disambiguation — for example "attention" becomes "attention machine learning", "transformer" becomes "transformer deep learning architecture". This rule must be in the prompt explicitly.
+- Expands abbreviations and acronyms relevant to space and astronomy (for example "JWST" becomes "James Webb Space Telescope", "CMB" becomes "cosmic microwave background").
+- Appends domain context to all search terms only when genuinely ambiguous (e.g., "corona (astronomy)"). It prefers the most specific Wikipedia article title without adding unnecessary filler words.
 - Determines the query type: explanation (one concept, fetch 2 articles), comparison (multiple concepts, fetch 3 articles), or broad (overview topic, fetch 3-4 articles)
 - Produces a list of 2-4 specific Wikipedia search queries and the number of articles to fetch
 
@@ -172,14 +172,14 @@ Do not clean or parse the article content at this stage. Pass raw content forwar
 This agent takes the fetched Wikipedia articles and builds a knowledge graph in Neo4j.
 
 What it does:
-- For each article, sends the content to Nemotron to extract entities and relationships
-- Writes the extracted nodes and edges to Neo4j AuraDB
-- Clears the existing Neo4j graph before writing (fresh graph per query)
-- Returns a summary of what was built: node count, edge count, list of node names, and the full nodes/edges data for the UI visualization
+- Performs a pre-flight check in Neo4j for the queried concepts. If they already exist, it skips extraction and instantly sets `graph_ready=True` (zero-shot graph building).
+- If concepts are missing, it sends the new article content to Nemotron to extract entities and relationships.
+- Merges the extracted nodes and edges into a persistent, append-only Neo4j AuraDB knowledge graph.
+- Returns a summary of what was built or bypassed: node count, edge count, list of node names, and the full nodes/edges data for the UI visualization.
 
 Chunking strategy for extraction: Wikipedia articles have section headers (== Section Name ==). Split by section and process each section separately. This keeps each LLM call focused and improves extraction quality.
 
-Prompt rules for Nemotron: return only valid JSON with no markdown. Extract named entities only — people, organizations, concepts, methods, datasets, papers. Do not create nodes for years, numbers, dates, or generic words. Relation names must be snake_case and directional. Extract 15-30 granular, detailed relationships per article.
+Prompt rules for Nemotron: return only valid JSON with no markdown. Extract pristine, space-specific entities only in their singular form. No generic filler nodes (like "surroundings", "researchers", "telescope parts"). Relation names must be snake_case and directional. Extract 15-30 granular, detailed relationships per article focused strictly on astronomical phenomena and missions.
 
 Since OpenRouter free tier does not support the response_format JSON parameter, parse the response by extracting content between the first opening brace and the last closing brace. This is the primary parsing strategy, not a fallback.
 
@@ -204,9 +204,9 @@ What it does:
 
 Embedding cache: maintain a module-level in-memory dictionary keyed by the hash of each chunk's text. Check the cache before calling the Pinecone API. Store results in the cache after calling. This prevents re-embedding the same content across similar queries in the same session.
 
-Pinecone namespace strategy: do NOT delete the namespace before upserting. Instead, use a unique namespace per query_id (the query_id is available in state). This avoids the async deletion problem where upserts race against incomplete deletes. Old namespaces from previous queries accumulate but will never exceed free tier limits in dev/demo usage.
+Pinecone namespace strategy: use the Wikipedia article title (e.g., `black_hole`) as the namespace. This allows cross-query retrieval and deduplication of embedded articles. Once an article is embedded, future queries that fetch the same article can instantly retrieve its chunks without needing to re-embed them.
 
-When querying in Agent 5, always filter by the current query's namespace so only current-query vectors are returned.
+When querying in Agent 5, filter by the specific namespaces of the articles fetched for the current query, allowing the system to reuse previously embedded data.
 
 If the Pinecone write fails, log the error and set vector_ready to False in state. Never crash the pipeline.
 
@@ -247,7 +247,7 @@ What it does:
 - Includes built-in retry logic (retry once after a 2-second wait on failure)
 - Returns the generated answer text, a list of source objects (title and URL), and a record of which retrieval methods were used
 
-The target audience in the prompt is someone with a technical/ML background — do not over-explain basics.
+The target audience in the prompt is space enthusiasts and astronomers. The generator must use high-level technical terminology (e.g., orbital mechanics, spectroscopy, stellar evolution) and avoid over-explaining basics.
 
 If the generation call fails, retry once after a 2-second wait. If the retry also fails, return an error message to the user that includes the raw retrieval context so they still get value from the query.
 
