@@ -10,6 +10,10 @@
 </div>
 
 <br/>
+<div align="center">
+  <img src="frontend/src/assets/hero.png" alt="WikiMind Hero" width="100%"/>
+</div>
+<br/>
 
 Traditional RAG (Retrieval-Augmented Generation) systems suffer from a fatal flaw: they rely exclusively on dense vector search, which retrieves disorganized chunks of text without understanding the factual, structural relationships between them. 
 
@@ -26,6 +30,11 @@ WikiMind is an autonomous, agentic search engine that leverages a **Dual-Retriev
 - **Real-Time Knowledge Ingestion:** WikiMind doesn't rely on stale, pre-trained data. It hits the live Wikipedia API during every query to ensure the most up-to-date facts are used.
 - **Graceful Degradation:** Engineered for extreme fault-tolerance. If Neo4j or Pinecone experience an outage during the pipeline, the system automatically detects the failure and relies on the surviving database without crashing.
 - **Interactive Streaming UI:** A breathtaking, dark-mode React frontend that streams the LLM tokens in real-time, while providing a live "pipeline trace" so you can watch the agents think and work.
+
+<br/>
+<div align="center">
+  <img src="frontend/src/assets/landing_page.png" alt="WikiMind Landing Page" width="100%"/>
+</div>
 
 ---
 
@@ -47,6 +56,11 @@ graph TD
     I -->|Streams Answer| J[User UI]
 ```
 
+<br/>
+<div align="center">
+  <img src="frontend/src/assets/pipeline_trace.png" alt="Pipeline Trace" width="100%"/>
+</div>
+
 ### 1. Query Understanding (Agent)
 An LLM analyzes the raw user prompt to determine its intent, extracts core concepts, and autonomously writes optimal search queries to query Wikipedia.
 ### 2. Fetch
@@ -57,8 +71,18 @@ A heavy-duty LLM parses the raw text and extracts precise mathematical/factual r
 Simultaneously, the text is chunked and embedded into a high-dimensional vector space in **Pinecone** for semantic similarity search.
 ### 5. Retrieval
 The system queries Neo4j via Cypher for factual relationships and Pinecone via cosine similarity for dense context, fusing them into a unified payload.
+
+<br/>
+<div align="center">
+  <img src="frontend/src/assets/knowledge_graph.png" alt="Knowledge Graph" width="100%"/>
+</div>
 ### 6. Generator (Agent)
 A final LLM synthesizes the dual-context payload into a beautifully formatted, cited, and streaming response.
+
+<br/>
+<div align="center">
+  <img src="frontend/src/assets/answer.png" alt="Generated Answer" width="100%"/>
+</div>
 
 ---
 
