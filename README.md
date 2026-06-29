@@ -25,7 +25,7 @@ WikiMind is an autonomous, agentic search engine that leverages a **Dual-Retriev
 
 ---
 
-## 🌟 Key Innovations
+##  Key Innovations
 
 - **Dual-Retrieval RAG:** Merges the structural precision of a Knowledge Graph with the semantic fluidity of a Vector Database, solving hallucination and context-loss issues inherent in standard vector-only RAGs.
 - **Agentic Orchestration:** Powered by LangGraph, the system utilizes a 6-step autonomous pipeline. AI agents write their own search queries, scrape data, and build graphs entirely on their own.
@@ -37,7 +37,7 @@ WikiMind is an autonomous, agentic search engine that leverages a **Dual-Retriev
 
 ---
 
-## 🏗 The Autonomous Pipeline
+##  The Autonomous Pipeline
 
 Under the hood, every user query kicks off a massively parallel LangGraph workflow:
 
@@ -92,7 +92,7 @@ WikiMind is built with a modern, scalable, and highly modular architecture.
 
 ---
 
-## 🚀 Deployment & Installation
+##  Deployment & Installation
 
 WikiMind is fully containerized for seamless deployment.
 
