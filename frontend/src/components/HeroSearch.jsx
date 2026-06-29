@@ -34,8 +34,8 @@ const HeroSearch = ({ onSubmit, isLoading }) => {
       </p>
 
       <div className="w-full max-w-2xl mt-12 relative group">
-        <div className="absolute -inset-0.5 bg-space-accent rounded-full blur opacity-30 group-focus-within:opacity-70 transition duration-500"></div>
-        <form onSubmit={handleSubmit} className="relative flex items-center bg-space-800/80 backdrop-blur-sm border border-space-border rounded-full p-2 focus-within:border-space-accent transition-colors">
+        <div className="absolute -inset-0.5 bg-white rounded-full blur opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
+        <form onSubmit={handleSubmit} className="relative flex items-center bg-space-800/80 backdrop-blur-sm border border-space-border rounded-full p-2 focus-within:border-white/50 transition-colors">
           <div className="pl-4 pr-2 text-space-muted">
             <Search className="w-5 h-5" />
           </div>
@@ -50,10 +50,10 @@ const HeroSearch = ({ onSubmit, isLoading }) => {
           <button
             type="submit"
             disabled={isLoading || !query.trim()}
-            className="bg-space-accent hover:bg-space-accent-hover text-white rounded-full p-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-white hover:bg-gray-200 text-black rounded-full p-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
             ) : (
               <ArrowRight className="w-5 h-5" />
             )}

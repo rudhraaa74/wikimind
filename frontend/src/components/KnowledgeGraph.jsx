@@ -112,10 +112,10 @@ const KnowledgeGraph = ({ nodes = [], edges = [] }) => {
   };
 
   return (
-    <div className="bg-space-800 border border-space-border rounded-lg p-6 flex flex-col h-[520px]">
+    <div className="flex flex-col h-[600px] w-full pt-4">
       <h2 className="text-xs font-semibold uppercase tracking-widest text-space-muted mb-6">KNOWLEDGE GRAPH</h2>
       
-      <div className="flex-1 w-full rounded-md border border-space-border/50 overflow-hidden bg-space-900/50 relative">
+      <div className="flex-1 w-full overflow-hidden bg-transparent relative">
         {nodes.length > 0 ? (
           <>
             <ReactFlow 

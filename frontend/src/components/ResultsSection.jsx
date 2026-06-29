@@ -28,26 +28,26 @@ const ResultsSection = ({ loading, result, error }) => {
           <p className="text-space-error font-medium">{error}</p>
         </div>
       ) : result ? (
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="w-full lg:w-1/2">
-              <AnswerPanel 
-                answer={result.answer} 
-                sources={result.sources} 
-                retrievalSources={result.retrieval_sources}
-              />
-            </div>
-            <div className="w-full lg:w-1/2">
-              <KnowledgeGraph 
-                nodes={result.graph_data?.nodes || []} 
-                edges={result.graph_data?.edges || []} 
-              />
-            </div>
+        <div className="flex flex-col gap-8">
+          <div className="w-full">
+            <AnswerPanel 
+              answer={result.answer} 
+              sources={result.sources} 
+              retrievalSources={result.retrieval_sources}
+            />
           </div>
-          <PipelineTrace 
-            trace={result.trace} 
-            totalDuration={result.total_duration_ms} 
-          />
+          <div className="w-full">
+            <KnowledgeGraph 
+              nodes={result.graph_data?.nodes || []} 
+              edges={result.graph_data?.edges || []} 
+            />
+          </div>
+          <div className="w-full">
+            <PipelineTrace 
+              trace={result.trace} 
+              totalDuration={result.total_duration_ms} 
+            />
+          </div>
         </div>
       ) : null}
     </div>

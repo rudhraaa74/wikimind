@@ -10,10 +10,10 @@ const PipelineTrace = ({ trace, totalDuration }) => {
   const isError = trace.some(step => step.detail.toLowerCase().includes('fail') || step.detail.toLowerCase().includes('error'));
   
   return (
-    <div className="mt-6 bg-space-800 border border-space-border rounded-lg overflow-hidden">
+    <div className="mt-6 flex flex-col pt-4">
       {/* Header / Summary Row */}
       <div 
-        className="px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-space-900/50 transition-colors"
+        className="py-4 flex items-center justify-between cursor-pointer group transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3">
@@ -42,7 +42,7 @@ const PipelineTrace = ({ trace, totalDuration }) => {
       <div 
         className={`transition-all duration-500 ease-in-out ${expanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className="p-6 pt-4 border-t border-space-border overflow-x-auto">
+        <div className="py-6 overflow-x-auto">
           <div className="flex items-stretch min-w-max pb-2">
             {trace.map((step, idx) => {
               const isStepCached = step.detail.toLowerCase().includes('skipped') || step.detail.toLowerCase().includes('reusing');
