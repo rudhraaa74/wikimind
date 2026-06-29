@@ -31,6 +31,7 @@ WikiMind is an autonomous, agentic search engine that leverages a **Dual-Retriev
 - **Agentic Orchestration:** Powered by LangGraph, the system utilizes a 6-step autonomous pipeline. AI agents write their own search queries, scrape data, and build graphs entirely on their own.
 - **Real-Time Knowledge Ingestion:** WikiMind doesn't rely on stale, pre-trained data. It hits the live Wikipedia API during every query to ensure the most up-to-date facts are used.
 - **Graceful Degradation:** Engineered for extreme fault-tolerance. If Neo4j or Pinecone experience an outage during the pipeline, the system automatically detects the failure and relies on the surviving database without crashing.
+- **Intelligent Caching:** The Graph Builder and Vector Embedder instantly detect if Wikipedia articles have already been processed in the past, completely bypassing expensive LLM extraction to return results in milliseconds and save on API costs.
 - **Interactive Streaming UI:** A breathtaking, dark-mode React frontend that streams the LLM tokens in real-time, while providing a live "pipeline trace" so you can watch the agents think and work.
 
 ![WikiMind Landing Page](frontend/src/assets/landing_page.png)
@@ -96,6 +97,11 @@ WikiMind is built with a modern, scalable, and highly modular architecture.
 
 WikiMind is fully containerized for seamless deployment.
 
+### 0. Prerequisites
+- **Docker & Docker Compose** (for production deployment)
+- **Python 3.11+ & Node.js 20+** (for local development)
+- Free tier accounts for **Neo4j AuraDB**, **Pinecone**, and **OpenRouter/Gemini**
+
 ### 1. Environment Setup
 Create a `.env` file at the root of the project:
 ```env
@@ -134,4 +140,12 @@ cd frontend
 npm install
 npm run dev
 ```
+
+
+
+### 4. Future Roadmap
+
+- [ ] **Conversational Memory:** Allow multi-turn follow-up questions within the same research session.
+- [ ] **Local LLM Support:** Integrate Ollama to run the Graph Extraction agents entirely offline.
+- [ ] **Multi-Domain Expansion:** Currently optimized for Space and Astronomy, with plans to support Medical and Historical research.
 
