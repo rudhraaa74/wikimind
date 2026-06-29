@@ -54,7 +54,7 @@ function App() {
         className="fixed z-0 pointer-events-none"
         style={{ 
           bottom: '10%',
-          right: '-15%',
+          right: '-250px',
           transform: `translateY(${-scrollY * 0.3}px)`,
           width: '750px',
           height: '750px',
@@ -65,9 +65,12 @@ function App() {
         <img 
           src="/moon.jpg" 
           alt="Moon background" 
-          className="w-full h-full object-cover opacity-100 mix-blend-screen"
+          className="w-full h-full object-cover opacity-35 mix-blend-screen"
         />
       </div>
+
+      {/* Dark gradient overlay for text readability */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-r from-[#07080f]/95 via-[#07080f]/60 to-transparent" />
 
       <Navbar />
 

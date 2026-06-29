@@ -8,7 +8,7 @@ const AnswerPanel = ({ answer, sources, retrievalSources }) => {
   const hasPinecone = retrievalSources?.includes("Pinecone");
 
   return (
-    <div className="bg-space-800 border border-space-border rounded-lg p-6 flex flex-col h-full">
+    <div className="bg-[#07080f]/85 backdrop-blur-[12px] border border-white/[0.08] rounded-2xl p-8 flex flex-col h-full shadow-2xl">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-space-muted m-0">ANSWER</h2>
         <div className="flex gap-2">
@@ -25,8 +25,35 @@ const AnswerPanel = ({ answer, sources, retrievalSources }) => {
         </div>
       </div>
 
-      <div className="prose prose-invert prose-headings:text-white prose-p:text-slate-300 prose-strong:text-white prose-li:text-slate-300 max-w-none flex-1">
-        <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[[rehypeKatex, { output: 'html' }]]}>{answer}</ReactMarkdown>
+      <div className="max-w-none flex-1 mt-4">
+        <ReactMarkdown 
+          remarkPlugins={[remarkMath]} 
+          rehypePlugins={[[rehypeKatex, { output: 'html' }]]}
+          components={{
+            h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-white border-b border-white/20 pb-2 mb-4 mt-8" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-xl font-bold text-white border-b border-white/20 pb-2 mb-4 mt-8" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-lg font-bold text-white border-b border-white/20 pb-2 mb-4 mt-8" {...props} />,
+            p: ({node, ...props}) => <p className="text-slate-300 leading-[1.8] mb-6 first-of-type:text-[1.1rem] first-of-type:text-slate-200" {...props} />,
+            ul: ({node, ...props}) => <ul className="space-y-3 mb-6" {...props} />,
+            ol: ({node, ...props}) => <ol className="list-decimal pl-5 space-y-3 mb-6 text-slate-300 leading-[1.8]" {...props} />,
+            li: ({node, ...props}) => (
+              <li className="flex items-start gap-3 text-slate-300 leading-[1.8]">
+                <span className="text-white mt-1.5 opacity-60 text-[10px]">●</span>
+                <span className="flex-1">{props.children}</span>
+              </li>
+            ),
+            a: ({node, ...props}) => {
+              // Style citation links
+              if (props.href?.startsWith('#source-')) {
+                return <sup className="text-indigo-400 font-bold ml-0.5 text-xs">{props.children}</sup>;
+              }
+              return <a className="text-indigo-400 hover:underline" {...props} />;
+            },
+            strong: ({node, ...props}) => <strong className="text-white font-semibold" {...props} />
+          }}
+        >
+          {answer?.replace(/\[(\d+)\]/g, '[$1](#source-$1)')}
+        </ReactMarkdown>
       </div>
 
       {sources && sources.length > 0 && (

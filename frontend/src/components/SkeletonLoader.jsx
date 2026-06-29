@@ -17,9 +17,9 @@ const SkeletonLoader = () => {
   }, [messages.length]);
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 w-full animate-pulse">
+    <div className="flex flex-col gap-8 w-full animate-pulse">
       {/* Answer Skeleton */}
-      <div className="w-full md:w-1/2 bg-space-800 border border-space-border rounded-lg p-6 flex flex-col gap-4">
+      <div className="w-full bg-space-800 border border-space-border rounded-lg p-6 flex flex-col gap-4">
         <div className="h-4 bg-space-border rounded w-1/4 mb-4"></div>
         <div className="h-4 bg-space-border rounded w-full"></div>
         <div className="h-4 bg-space-border rounded w-5/6"></div>
@@ -30,7 +30,7 @@ const SkeletonLoader = () => {
       </div>
       
       {/* Graph Skeleton */}
-      <div className="w-full md:w-1/2 bg-space-800 border border-space-border rounded-lg p-6 flex flex-col items-center justify-center min-h-[520px]">
+      <div className="w-full bg-space-800 border border-space-border rounded-lg p-6 flex flex-col items-center justify-center min-h-[520px]">
         <div className="w-16 h-16 border-4 border-space-accent border-t-transparent rounded-full animate-spin mb-6"></div>
         <p className="text-space-accent font-medium tracking-wide">
           {messages[messageIndex]}

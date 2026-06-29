@@ -17,7 +17,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Telescope className="w-6 h-6 text-space-accent" />
-          <span className="text-white font-bold tracking-[0.2em] text-lg mt-0.5">WIKIMIND</span>
+          <span className="text-white font-bold tracking-[0.2em] text-xl mt-0.5">WIKIMIND</span>
         </div>
         <div>
           <a href="https://github.com/rudhraaa74/wikimind" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-space-muted hover:text-white transition-colors">

@@ -24,7 +24,10 @@ const HeroSearch = ({ onSubmit, isLoading }) => {
 
   return (
     <div className="flex flex-col items-center justify-center pt-32 pb-12 px-4 text-center">
-      <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white uppercase tracking-tight leading-[1.1] mb-2">
+      <h1 
+        className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white uppercase tracking-tight leading-[1.1] mb-2"
+        style={{ textShadow: '0 0 40px rgba(0,0,0,0.8)' }}
+      >
         EXPLORE THE UNIVERSE<br />
         <span className="text-space-muted">THROUGH CONNECTED KNOWLEDGE</span>
       </h1>
@@ -35,7 +38,7 @@ const HeroSearch = ({ onSubmit, isLoading }) => {
 
       <div className="w-full max-w-2xl mt-12 relative group">
         <div className="absolute -inset-0.5 bg-white rounded-full blur opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
-        <form onSubmit={handleSubmit} className="relative flex items-center bg-space-800/80 backdrop-blur-sm border border-space-border rounded-full p-2 focus-within:border-white/50 transition-colors">
+        <form onSubmit={handleSubmit} className="relative flex items-center bg-[#1c1a2b]/90 backdrop-blur-md border border-[#2d2a45]/80 rounded-full p-2 focus-within:border-space-accent/50 focus-within:bg-[#1f1d33]/90 transition-colors duration-300">
           <div className="pl-4 pr-2 text-space-muted">
             <Search className="w-5 h-5" />
           </div>
