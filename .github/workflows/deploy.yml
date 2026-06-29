@@ -1,0 +1,43 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Basic Checks
+        run: |
+          if [ ! -f "requirements.txt" ] && [ ! -f "backend/requirements.txt" ]; then echo "requirements.txt not found"; exit 1; fi
+          if [ ! -f "backend/Dockerfile" ]; then echo "Backend Dockerfile not found"; exit 1; fi
+          if [ ! -f "frontend/Dockerfile" ]; then echo "Frontend Dockerfile not found"; exit 1; fi
+          if [ -f ".env" ]; then echo "WARNING: .env file accidentally committed!"; exit 1; fi
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            cd wikimind || git clone https://github.com/rudhraaa74/wikimind.git && cd wikimind
+            git pull origin main
+            docker-compose up -d --build
+            docker-compose ps
+
+      - name: Health Check
+        run: |
+          sleep 10
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.EC2_HOST }}/api/health)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Health check failed with status $STATUS"
+            exit 1
+          fi
+          echo "Health check passed!"

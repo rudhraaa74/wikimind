@@ -46,8 +46,30 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
         if not content:
             continue
             
+        namespace = title.lower().replace(' ', '_')
+        print(f"DEBUG: Article '{title}' will use namespace '{namespace}'")
+        
+        is_skipped = False
+        vector_count = 0
+        try:
+            stats = pinecone_client.index.describe_index_stats()
+            namespaces_dict = stats.get('namespaces', {})
+            if namespace in namespaces_dict and namespaces_dict[namespace].vector_count > 0:
+                vector_count = namespaces_dict[namespace].vector_count
+                is_skipped = True
+        except Exception:
+            pass
+            
+        if is_skipped:
+            log_info(query_id, "Step4_Embedder", f"Namespace already exists with {vector_count} vectors, skipping embedding for article '{title}'")
+            print(f"DEBUG: Article '{title}' skipped (Cache hit: {vector_count} vectors in namespace '{namespace}')")
+            continue
+            
+        print(f"DEBUG: Article '{title}' freshly embedded (Namespace '{namespace}' not found or empty)")
+            
         chunks = splitter.split_text(content)
         chunk_counts[title] = len(chunks)
+        print(f"DEBUG: Created {len(chunks)} chunks for article '{title}'")
         log_info(query_id, "Step4_Embedder", f"Split '{title}' into {len(chunks)} chunks")
         
         for idx, chunk_text in enumerate(chunks):
@@ -72,7 +94,6 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
                     continue
                     
             # Prepare vector for Pinecone
-            namespace = title.lower().replace(' ', '_')
             if namespace not in vectors_to_upsert_by_namespace:
                 vectors_to_upsert_by_namespace[namespace] = []
                 
@@ -92,7 +113,11 @@ def embedder_node(state: GraphState) -> dict[str, Any]:
         total_upserted = 0
         for namespace, vectors in vectors_to_upsert_by_namespace.items():
             if vectors:
+                print(f"DEBUG: Upserting {len(vectors)} chunks for namespace '{namespace}' in batches")
+                upsert_start = time.time()
                 pinecone_client.upsert_vectors(namespace, vectors)
+                upsert_dur = time.time() - upsert_start
+                print(f"DEBUG: Upsert call for '{namespace}' took {upsert_dur:.3f} seconds")
                 total_upserted += len(vectors)
                 
         if total_upserted > 0:

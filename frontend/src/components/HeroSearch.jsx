@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ArrowRight } from 'lucide-react';
 
 const HeroSearch = ({ onSubmit, isLoading }) => {
   const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    const handleSetSearchQuery = (e) => {
+      if (e.detail && typeof e.detail === 'string') {
+        setQuery(e.detail);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    window.addEventListener('setSearchQuery', handleSetSearchQuery);
+    return () => window.removeEventListener('setSearchQuery', handleSetSearchQuery);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();

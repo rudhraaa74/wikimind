@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, ArrowRight, Zap } from 'lucide-react';
 
 const PipelineTrace = ({ trace, totalDuration }) => {
   const [expanded, setExpanded] = useState(false);
@@ -21,9 +21,10 @@ const PipelineTrace = ({ trace, totalDuration }) => {
           <div className="flex items-center gap-2 text-sm text-space-muted ml-4 border-l border-space-border pl-4">
             <span>Completed in {(totalDuration / 1000).toFixed(2)}s</span>
             {hasCache && (
-              <span className="bg-space-cached/20 text-space-cached text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                Cached
-              </span>
+              <div className="flex items-center gap-1.5 ml-2 opacity-80">
+                <Zap className="w-3.5 h-3.5 text-space-cached fill-space-cached/20" />
+                <span className="text-[11px] text-space-cached font-medium tracking-wide uppercase">Fast Cache</span>
+              </div>
             )}
             {isError && (
               <span className="bg-space-error/20 text-space-error text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">
@@ -41,8 +42,8 @@ const PipelineTrace = ({ trace, totalDuration }) => {
       <div 
         className={`transition-all duration-500 ease-in-out ${expanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className="p-6 pt-2 border-t border-space-border">
-          <div className="space-y-4">
+        <div className="p-6 pt-4 border-t border-space-border overflow-x-auto">
+          <div className="flex items-stretch min-w-max pb-2">
             {trace.map((step, idx) => {
               const isStepCached = step.detail.toLowerCase().includes('skipped') || step.detail.toLowerCase().includes('reusing');
               const isStepError = step.detail.toLowerCase().includes('fail') || step.detail.toLowerCase().includes('error');
@@ -52,18 +53,30 @@ const PipelineTrace = ({ trace, totalDuration }) => {
               else if (isStepCached) dotColor = 'bg-space-cached';
 
               return (
-                <div key={idx} className="flex items-start gap-4">
-                  <div className="mt-1.5">
-                    <div className={`w-2.5 h-2.5 rounded-full ${dotColor}`}></div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white">{step.step}</span>
-                      <span className="text-space-muted text-sm font-mono">{step.duration_ms}ms</span>
+                <React.Fragment key={idx}>
+                  {/* Step Card */}
+                  <div className="flex flex-col w-[220px] flex-shrink-0 bg-space-900/40 rounded-lg p-4 border border-space-border/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
+                        <span className="font-semibold text-white text-sm">{step.step}</span>
+                      </div>
                     </div>
-                    <p className="text-sm text-space-muted mt-1">{step.detail}</p>
+                    <p className="text-xs text-space-muted leading-relaxed mb-3 flex-grow">
+                      {step.detail}
+                    </p>
+                    <div className="text-[11px] text-space-muted font-medium bg-space-800 inline-block px-2 py-1 rounded-md self-start border border-space-border">
+                      {step.duration_ms}ms
+                    </div>
                   </div>
-                </div>
+
+                  {/* Arrow connector */}
+                  {idx < trace.length - 1 && (
+                    <div className="flex items-center justify-center px-3 flex-shrink-0">
+                      <ArrowRight className="w-5 h-5 text-space-border" />
+                    </div>
+                  )}
+                </React.Fragment>
               );
             })}
           </div>

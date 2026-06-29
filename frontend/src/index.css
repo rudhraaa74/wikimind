@@ -83,3 +83,16 @@
   background: radial-gradient(circle at center, transparent 0%, var(--color-space-900) 100%);
   opacity: 0.5;
 }
+
+/* React Flow Controls Styling */
+.react-flow__controls-button {
+  background-color: var(--color-space-800) !important;
+  border-bottom: 1px solid var(--color-space-border) !important;
+  fill: var(--color-space-text) !important;
+}
+.react-flow__controls-button:hover {
+  background-color: var(--color-space-border) !important;
+}
+.react-flow__controls-button svg {
+  fill: var(--color-space-text) !important;
+}
