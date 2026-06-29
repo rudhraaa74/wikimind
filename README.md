@@ -6,6 +6,12 @@
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688.svg)](https://fastapi.tiangolo.com)
   [![React](https://img.shields.io/badge/React-18.x-61DAFB.svg)](https://reactjs.org)
   [![LangGraph](https://img.shields.io/badge/Agentic-LangGraph-FF4F00.svg)](https://python.langchain.com/docs/langgraph)
+  [![Neo4j](https://img.shields.io/badge/Neo4j-Graph_DB-4581C3.svg)](https://neo4j.com/)
+  [![Pinecone](https://img.shields.io/badge/Pinecone-Vector_DB-000000.svg)](https://www.pinecone.io/)
+  <br/>
+  [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
+  [![AWS](https://img.shields.io/badge/AWS-EC2-FF9900.svg)](https://aws.amazon.com/ec2/)
+  [![Nginx](https://img.shields.io/badge/Nginx-Proxy-009639.svg)](https://nginx.org/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 </div>
 
