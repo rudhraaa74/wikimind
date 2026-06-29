@@ -145,7 +145,9 @@ npm run dev
 
 ### 4. Future Roadmap
 
-- [ ] **Conversational Memory:** Allow multi-turn follow-up questions within the same research session.
-- [ ] **Local LLM Support:** Integrate Ollama to run the Graph Extraction agents entirely offline.
-- [ ] **Multi-Domain Expansion:** Currently optimized for Space and Astronomy, with plans to support Medical and Historical research.
+- [ ] **Stateful Conversational Memory (Redis Cluster)**
+- [ ] **Multi-Domain Expansion** 
+- [ ] **Cross-Encoder Reranking & Context Distillation** 
+- [ ] **Automated Evals & Guardrail Instrumentation** 
+- [ ] **Agentic Critique & Self-Correction Loops** 
 
