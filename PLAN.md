@@ -578,6 +578,8 @@ Commit to GitHub.
 ### Day 7 — React UI, Polish, and README
 
 Write the Vite React app with the three main sections (Hero, AnswerPanel/KnowledgeGraph, PipelineTrace). Implement the React Flow graph visualization.
+Refine the UI aesthetic: implement a deep space dark theme with a parallax moon element on scroll, a purplish glassmorphism search bar, frosted glass panels for the results, and a seamless vertical stack layout.
+Enhance typography: use custom markdown components to render structured headings, bullet points, and plain-text superscript citations (avoiding raw markdown links). Ensure loading skeletons match the final vertical layout.
 
 Test the full flow from the React UI through FastAPI and back. Run at least ten different queries covering different query types. Fix any bugs found.
 
